@@ -99,7 +99,7 @@ public class PurchaseService {
         }
         purchase.setCheckoutDate(new Date());
         purchase.setState(PurchaseState.SERVED);
-        purchase.setAmount(computeAmount(purchase.getPizzas()));
+        purchase.setAmount(PriceCalculator.computeAmount(purchase.getPizzas()));
         purchaseRepository.save(purchase);
         ongoingPurchases.remove(currentUser);
 
@@ -107,32 +107,6 @@ public class PurchaseService {
             new EmailService().sendConfirmationEmail(currentUser, purchase);
         } catch (Exception e) {
         }
-    }
-
-    private Double computeAmount(List<Pizza> pizzas) {
-        double totalPrice = 0;
-        if (pizzas == null) {
-            return 0.0;
-        }
-        // buy a pineapple pizza, get 10% off the others
-        boolean applyPineappleDiscount = false;
-        for (Pizza pizza : pizzas) {
-            if (pizza.getToppings().contains("pineapple")) {
-                applyPineappleDiscount = true;
-            }
-        }
-        for (Pizza pizza : pizzas) {
-            if (pizza.getToppings().contains("pineapple")) {
-                totalPrice += pizza.getPrice();
-            }  else {
-                if (applyPineappleDiscount) {
-                        totalPrice += pizza.getPrice() *0.9;
-                } else {
-                    totalPrice += pizza.getPrice();
-                }
-            }
-        }
-        return totalPrice;
     }
 
     @PreAuthorize("hasRole('PIZZA_MAKER')")
